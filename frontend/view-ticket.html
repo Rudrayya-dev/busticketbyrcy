@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View My Ticket</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-4 text-center">Find Your Ticket</h2>
+
+    <form id="searchForm" class="space-y-4">
+  <input type="text" id="nameInput" placeholder="Enter Passenger Name" required class="w-full px-4 py-2 border rounded-lg" />
+  <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Search Ticket</button>
+</form>
+
+    <div id="ticketDetails" class="hidden mt-6 text-center">
+      <h3 class="text-xl font-bold mb-2">Ticket Details</h3>
+      <p><strong>Name:</strong> <span id="name"></span></p>
+      <p><strong>Destination:</strong> <span id="destination"></span></p>
+      <p><strong>Tickets:</strong> <span id="count"></span></p>
+      <p><strong>Total Fare:</strong> ₹<span id="fare"></span></p>
+      <p><strong>Timestamp:</strong> <span id="time"></span></p>
+      <div class="my-4" id="qrcode"></div>
+    </div>
+
+    <div id="error" class="text-red-600 text-center mt-4 hidden">Ticket not found.</div>
+  </div>
+
+ <script>
+  const form = document.getElementById("searchForm");
+  const ticketDetails = document.getElementById("ticketDetails");
+  const error = document.getElementById("error");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("nameInput").value.trim();
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/tickets/name/${encodeURIComponent(name)}`);
+      if (!res.ok) throw new Error();
+
+      const ticket = await res.json();
+      document.getElementById("name").textContent = ticket.name;
+      document.getElementById("destination").textContent = ticket.destination;
+      document.getElementById("count").textContent = ticket.tickets;
+      document.getElementById("fare").textContent = ticket.totalFare;
+      document.getElementById("time").textContent = new Date(ticket.timestamp).toLocaleString();
+
+
+      const qrContainer = document.getElementById("qrcode");
+      qrContainer.innerHTML = "";
+      new QRCode(qrContainer, {
+        text: `https://yourdomain.com/ticket?name=${encodeURIComponent(ticket.name)}`,
+        width: 128,
+        height: 128
+      });
+
+      ticketDetails.classList.remove("hidden");
+      error.classList.add("hidden");
+    } catch {
+      ticketDetails.classList.add("hidden");
+      error.classList.remove("hidden");
+    }
+  });
+</script>
+
+      
+</body>
+</html>

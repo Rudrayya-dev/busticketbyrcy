@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Ticket Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+  <div class="max-w-7xl mx-auto bg-white p-8 rounded-xl shadow-md">
+    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">All Booked Tickets</h1>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-left text-gray-700 border">
+        <thead class="bg-blue-100 text-gray-800">
+          <tr>
+            <th class="px-4 py-2 border">#</th>
+            <th class="px-4 py-2 border">Passenger Name</th>
+            <th class="px-4 py-2 border">Destination</th>
+            <th class="px-4 py-2 border">Tickets</th>
+            <th class="px-4 py-2 border">Total Fare (₹)</th>
+            <th class="px-4 py-2 border">Timestamp</th>
+          </tr>
+        </thead>
+        <tbody id="ticketTableBody" class="bg-white divide-y divide-gray-200">
+          <!-- Data will be injected here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function loadTickets() {
+      try {
+        const res = await fetch("http://localhost:5000/api/tickets");
+        const data = await res.json();
+        const tableBody = document.getElementById("ticketTableBody");
+        tableBody.innerHTML = "";
+
+        if (!Array.isArray(data) || data.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-red-600">No tickets found.</td></tr>`;
+          return;
+        }
+
+        data.forEach((ticket, index) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td class="px-4 py-2 border">${index + 1}</td>
+            <td class="px-4 py-2 border">${ticket.name}</td>
+            <td class="px-4 py-2 border">${ticket.destination}</td>
+            <td class="px-4 py-2 border">${ticket.tickets}</td>
+            <td class="px-4 py-2 border">${ticket.totalFare}</td>
+            <td class="px-4 py-2 border">${new Date(ticket.timestamp).toLocaleString()}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+
+      } catch (error) {
+        console.error("Error loading tickets:", error);
+        document.getElementById("ticketTableBody").innerHTML =
+          `<tr><td colspan="6" class="text-center text-red-600 py-4">Failed to load data.</td></tr>`;
+      }
+    }
+
+    loadTickets();
+  </script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Bus Ticket</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    body {
+      background: #f3f4f6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      background: #fff;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      border-radius: 16px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .mb-4 {
+      margin-bottom: 16px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+    .total-fare {
+      text-align: right;
+      font-weight: bold;
+      color: #2563eb;
+    }
+    button[type="submit"] {
+      width: 100%;
+      background: #2563eb;
+      color: #fff;
+      padding: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button[type="submit"]:hover {
+      background: #1d4ed8;
+    }
+    .view-ticket-link {
+      margin-top: 16px;
+      text-align: center;
+    }
+    .view-ticket-link a {
+      color: #2563eb;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .view-ticket-link a:hover {
+      text-decoration: underline;
+    }
+    /* Popup styles */
+    #confirmationPopup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+    #confirmationPopup.active {
+      display: flex;
+    }
+    .popup-content {
+      background: #fff;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+      text-align: center;
+      max-width: 350px;
+      margin: auto;
+    }
+    .popup-content button {
+      margin-top: 16px;
+      padding: 8px 24px;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .popup-content button:hover {
+      background: #15803d;
+    }
+    .my-4 {
+      margin: 16px 0;
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>WELCOME TO BMTC</h2>
+    <h2>Digital Ticket</h2>
+
+    <div class="mb-4">
+      <p><strong>Bus Number:</strong> KA-41-D-2521</p>
+      <p><strong>Route:</strong> Kengeri -> Banashankari</p>
+    </div>
+
+    <form id="ticketForm">
+      <div>
+        <label>Passenger Name</label>
+        <input type="text" id="name" required />
+      </div>
+
+      <div>
+        <label>Destination</label>
+        <select id="destination" required>
+          <option value="">Select destination</option>
+          <option value="Kodihalli Gate">Kodihalli Gate</option>
+          <option value="BGS Hospital">BGS Hospital</option>
+          <option value="Omkar Hills">Omkar Hills</option>
+          <option value="JSS College">JSS College</option>
+          <option value="Channasandra">Channasandra</option>
+          <option value="Patalamma Temple">Patalamma Temple</option>  
+          <option value="Arehalli">Arehalli</option>
+          <option value="Uttarahalli">Uttarahalli</option>
+          <option value="Chikkalaasandra">Chikkalaasandra</option>
+          <option value="Prarthana School">Prarthana School</option>
+          <option value="Kadirenahalli Village">Kadirenahalli Village</option>
+          <option value="Kadirenahalli Cross">Kadirenahalli Cross</option>
+          <option value="Banashankari Bus Stand">Banashankari Bus Stand</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Number of Tickets</label>
+        <input type="number" id="tickets" min="1" value="1" required />
+      </div>
+
+      <div>
+        <label>Payment Method</label>
+        <select id="payment" required>
+          <option value="">Select</option>
+          <option value="upi">UPI</option>
+          <option value="card">Credit/Debit Card</option>
+        </select>
+      </div>
+
+      <div class="total-fare">
+        Total Fare: ₹<span id="totalFare">0</span>
+      </div>
+
+      <button type="submit">Pay</button>
+    </form>
+
+    <!-- View My Ticket Link -->
+    <div class="view-ticket-link">
+      <a href="view-ticket.html">
+        🎫 View My Ticket
+      </a>
+    </div>
+  </div>
+
+  <div id="confirmationPopup">
+    <div class="popup-content">
+      <h3 class="text-xl font-bold mb-4">Payment Successful 🎉</h3>
+      <p class="mb-2">Thank you <span id="passengerName"></span>!</p>
+      <p>Destination: <span id="ticketDestination"></span></p>
+      <p>Tickets: <span id="ticketCount"></span></p>
+      <p>Total Fare: ₹<span id="ticketFare"></span></p>
+      <p><strong>Ticket ID:</strong> <span id="ticketId"></span></p>
+      <p><strong>Time of stamp:</strong> <span id="timestamp"></span></p>
+      <div id="qrcode" class="my-4"></div>
+      <button onclick="closePopup()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("ticketForm");
+    const popup = document.getElementById("confirmationPopup");
+    const qrContainer = document.getElementById("qrcode");
+    const totalFareEl = document.getElementById("totalFare");
+
+    const passengerNameEl = document.getElementById("passengerName");
+    const ticketDestinationEl = document.getElementById("ticketDestination");
+    const ticketCountEl = document.getElementById("ticketCount");
+    const ticketFareEl = document.getElementById("ticketFare");
+    const ticketIdEl = document.getElementById("ticketId");
+    const timestampEl = document.getElementById("timestamp");
+
+    const fareChart = {
+      "Kodihalli Gate": 6,
+      "BGS Hospital": 6,
+      "Omkar Hills": 12,
+      "JSS College": 12,
+      "Channasandra": 18,
+      "Patalamma Temple": 18,
+      "Arehalli": 18,
+      "Uttarahalli": 23,
+      "Chikkalaasandra": 23,
+      "Prarthana School": 23,
+      "Kadirenahalli Village": 28,
+      "Kadirenahalli Cross": 28,
+      "Banashankari Bus Stand": 28,
+    };
+
+    function updateFare() {
+      const destination = document.getElementById("destination").value;
+      const tickets = parseInt(document.getElementById("tickets").value) || 0;
+      const fare = fareChart[destination] || 0;
+      totalFareEl.textContent = fare * tickets;
+    }
+
+    document.getElementById("destination").addEventListener("change", updateFare);
+    document.getElementById("tickets").addEventListener("input", updateFare);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const destination = document.getElementById("destination").value;
+      const tickets = parseInt(document.getElementById("tickets").value);
+      const farePerTicket = fareChart[destination] || 0;
+      const totalFare = farePerTicket * tickets;
+      const ticketId = "TID" + Date.now();
+      const timestamp = new Date().toLocaleString();
+
+      // Save to backend
+      fetch("http://localhost:5000/api/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, destination, tickets, totalFare, ticketId, timestamp
+        })
+      });
+
+      passengerNameEl.textContent = name;
+      ticketDestinationEl.textContent = destination;
+      ticketCountEl.textContent = tickets;
+      ticketFareEl.textContent = totalFare;
+      ticketIdEl.textContent = ticketId;
+      timestampEl.textContent = timestamp;
+
+      const ticketURL = `https://yourwebsite.com/ticket?id=${ticketId}&to=${encodeURIComponent(destination)}`;
+
+      qrContainer.innerHTML = "";
+      new QRCode(qrContainer, {
+        text: ticketURL,
+        width: 128,
+        height: 128,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
+
+      popup.classList.add("active");
+      form.reset();
+      totalFareEl.textContent = "0";
+    });
+
+    function closePopup() {
+      popup.classList.remove("active");
+    }
+  </script>
+</body>
+</html>
